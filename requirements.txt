@@ -12,3 +12,4 @@ openai>=1.40.0
 gunicorn>=23.0.0
 
 # ZoneInfo e sqlite3 já estão incluídos no Python >=3.9, não precisa instalar.
+sqlitecloud

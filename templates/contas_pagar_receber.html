@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+
+{% block title %}Contas a Pagar/Receber - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-calendar-alt"></i> Contas a Pagar/Receber</h1>
+</div>
+
+<!-- Summary Cards -->
+{% if summary %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center border-danger">
+            <div class="card-body">
+                <h5 class="text-danger">{{ summary.contas_pagar_pendentes or 0 }}</h5>
+                <small>A Pagar</small>
+                <div class="text-muted">{{ brl(summary.valor_pagar or 0) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-success">
+            <div class="card-body">
+                <h5 class="text-success">{{ summary.contas_receber_pendentes or 0 }}</h5>
+                <small>A Receber</small>
+                <div class="text-muted">{{ brl(summary.valor_receber or 0) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-warning">
+            <div class="card-body">
+                <h5 class="text-warning">{{ summary.contas_vencidas or 0 }}</h5>
+                <small>Vencidas</small>
+                <div class="text-muted">Atenção</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center border-info">
+            <div class="card-body">
+                <h5 class="text-info">{{ (summary.valor_receber or 0) - (summary.valor_pagar or 0) }}</h5>
+                <small>Saldo Previsto</small>
+                <div class="text-muted">{{ brl((summary.valor_receber or 0) - (summary.valor_pagar or 0)) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Form -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-plus"></i> Nova Conta
+                </h3>
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="type" class="form-label">
+                        <i class="fas fa-exchange-alt"></i> Tipo
+                    </label>
+                    <select class="form-control form-select" id="type" name="type" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="pagar">
+                            <i class="fas fa-arrow-down"></i> Conta a Pagar
+                        </option>
+                        <option value="receber">
+                            <i class="fas fa-arrow-up"></i> Conta a Receber
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label">
+                        <i class="fas fa-file-alt"></i> Descrição
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="description" 
+                           name="description" 
+                           required 
+                           placeholder="Ex: Aluguel, Salário, etc."
+                           maxlength="200">
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount" class="form-label">
+                        <i class="fas fa-dollar-sign"></i> Valor
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="amount" 
+                           name="amount" 
+                           required 
+                           placeholder="0,00"
+                           data-currency>
+                </div>
+                
+                <div class="form-group">
+                    <label for="due_date" class="form-label">
+                        <i class="fas fa-calendar"></i> Data de Vencimento
+                    </label>
+                    <input type="datetime-local" 
+                           class="form-control" 
+                           id="due_date" 
+                           name="due_date" 
+                           required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="account_id" class="form-label">
+                        <i class="fas fa-university"></i> Conta
+                    </label>
+                    <select class="form-control form-select" id="account_id" name="account_id" required>
+                        <option value="">Selecione a conta</option>
+                        {% for account in accounts %}
+                        <option value="{{ account.id }}">{{ account.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category_id" class="form-label">
+                        <i class="fas fa-tag"></i> Categoria
+                    </label>
+                    <select class="form-control form-select" id="category_id" name="category_id">
+                        <option value="">Selecione a categoria</option>
+                        <optgroup label="Receitas">
+                            {% for category in categories %}
+                                {% if category.type == 'receita' %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="Despesas">
+                            {% for category in categories %}
+                                {% if category.type == 'despesa' %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recurring" class="form-label">
+                        <i class="fas fa-repeat"></i> Recorrência
+                    </label>
+                    <select class="form-control form-select" id="recurring" name="recurring">
+                        <option value="nao">Não se repete</option>
+                        <option value="mensal">Mensal</option>
+                        <option value="anual">Anual</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes" class="form-label">
+                        <i class="fas fa-sticky-note"></i> Observações
+                    </label>
+                    <textarea class="form-control" 
+                              id="notes" 
+                              name="notes" 
+                              rows="3" 
+                              placeholder="Observações opcionais"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-save"></i> Salvar Conta
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- List -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-list"></i> Minhas Contas
+                    </h3>
+                    
+                    <!-- Filters -->
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" onchange="filterBills()" id="statusFilter">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Todas</option>
+                            <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendentes</option>
+                            <option value="pago" {% if status_filter == 'pago' %}selected{% endif %}>Pagas</option>
+                            <option value="vencido" {% if status_filter == 'vencido' %}selected{% endif %}>Vencidas</option>
+                        </select>
+                        
+                        <select class="form-select form-select-sm" onchange="filterBills()" id="typeFilter">
+                            <option value="all" {% if type_filter == 'all' %}selected{% endif %}>Todos Tipos</option>
+                            <option value="pagar" {% if type_filter == 'pagar' %}selected{% endif %}>A Pagar</option>
+                            <option value="receber" {% if type_filter == 'receber' %}selected{% endif %}>A Receber</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            {% if bills %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vencimento</th>
+                                <th>Descrição</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in bills %}
+                            <tr class="{% if bill.status == 'vencido' %}table-danger{% elif bill.status == 'pago' %}table-success{% endif %}">
+                                <td>
+                                    {{ br_datetime(bill.due_date_utc) }}
+                                    {% if bill.recurring != 'nao' %}
+                                        <br><small class="text-muted">
+                                            <i class="fas fa-repeat"></i> {{ bill.recurring.title() }}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ bill.description }}</strong>
+                                    {% if bill.category_name %}
+                                        <br><small class="text-muted">{{ bill.category_name }}</small>
+                                    {% endif %}
+                                    {% if bill.notes %}
+                                        <br><small class="text-muted" title="{{ bill.notes }}">
+                                            <i class="fas fa-sticky-note"></i> {{ bill.notes[:30] }}{% if bill.notes|length > 30 %}...{% endif %}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bill.type == 'pagar' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-down"></i> A Pagar
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-up"></i> A Receber
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="currency {% if bill.type == 'receber' %}positive{% else %}negative{% endif %}">
+                                        {{ brl(bill.amount) }}
+                                    </span>
+                                    {% if bill.paid_amount and bill.paid_amount != bill.amount %}
+                                        <br><small class="text-muted">Pago: {{ brl(bill.paid_amount) }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bill.status == 'pendente' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Pendente
+                                        </span>
+                                    {% elif bill.status == 'pago' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Pago
+                                        </span>
+                                        {% if bill.paid_date_utc %}
+                                            <br><small class="text-muted">{{ br_datetime(bill.paid_date_utc) }}</small>
+                                        {% endif %}
+                                    {% elif bill.status == 'vencido' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle"></i> Vencido
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bill.status in ['pendente', 'vencido'] %}
+                                        <button class="btn btn-success btn-sm" 
+                                                onclick="markAsPaid({{ bill.id }}, '{{ bill.description }}', {{ bill.amount }})">
+                                            <i class="fas fa-check"></i> Marcar como Pago
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                    <h4 class="text-muted mt-3">Nenhuma conta encontrada</h4>
+                    <p class="text-muted">Comece criando sua primeira conta usando o formulário ao lado.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Marcar como Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm" method="POST">
+                    <p><strong>Conta:</strong> <span id="billDescription"></span></p>
+                    <p><strong>Valor original:</strong> <span id="billAmount"></span></p>
+                    
+                    <div class="form-group">
+                        <label for="paid_amount" class="form-label">Valor pago (deixe vazio para usar o valor original)</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="paid_amount" 
+                               name="paid_amount" 
+                               placeholder="0,00"
+                               data-currency>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="submitPayment()">
+                    <i class="fas fa-check"></i> Confirmar Pagamento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentBillId = null;
+
+// Set default datetime to now + 1 day
+document.addEventListener('DOMContentLoaded', function() {
+    const dueDateInput = document.getElementById('due_date');
+    if (dueDateInput) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(12, 0, 0, 0); // Set to noon
+        
+        // Format to YYYY-MM-DDTHH:MM
+        const year = tomorrow.getFullYear();
+        const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const day = String(tomorrow.getDate()).padStart(2, '0');
+        const hours = String(tomorrow.getHours()).padStart(2, '0');
+        const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+        
+        dueDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+});
+
+// Update category options based on bill type
+document.getElementById('type').addEventListener('change', function() {
+    const categorySelect = document.getElementById('category_id');
+    const optgroups = categorySelect.querySelectorAll('optgroup');
+    
+    // Show all optgroups first
+    optgroups.forEach(group => group.style.display = 'block');
+    
+    if (this.value === 'receber') {
+        // Hide expense categories
+        optgroups.forEach(group => {
+            if (group.label === 'Despesas') {
+                group.style.display = 'none';
+            }
+        });
+    } else if (this.value === 'pagar') {
+        // Hide income categories
+        optgroups.forEach(group => {
+            if (group.label === 'Receitas') {
+                group.style.display = 'none';
+            }
+        });
+    }
+    
+    // Reset category selection
+    categorySelect.value = '';
+});
+
+// Filter bills
+function filterBills() {
+    const status = document.getElementById('statusFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    
+    const params = new URLSearchParams();
+    if (status !== 'all') params.append('status', status);
+    if (type !== 'all') params.append('type', type);
+    
+    const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.location.href = url;
+}
+
+// Mark bill as paid
+function markAsPaid(billId, description, amount) {
+    currentBillId = billId;
+    document.getElementById('billDescription').textContent = description;
+    document.getElementById('billAmount').textContent = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(amount);
+    
+    // Clear previous value
+    document.getElementById('paid_amount').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    modal.show();
+}
+
+// Submit payment
+function submitPayment() {
+    if (!currentBillId) return;
+    
+    const form = document.getElementById('paymentForm');
+    form.action = `/bill/${currentBillId}/pay`;
+    form.submit();
+}
+
+// Auto-format currency input in modal
+document.getElementById('paid_amount').addEventListener('input', function() {
+    formatCurrencyInput(this);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h1 class="card-title">
+                    <i class="fas fa-chart-line"></i> SaaS Financeiro
+                </h1>
+                <p class="card-subtitle">Entre na sua conta</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" 
+                           class="form-control" 
+                           id="email" 
+                           name="email" 
+                           required 
+                           placeholder="seu@email.com"
+                           value="{{ request.form.email or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> Senha
+                    </label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           required 
+                           placeholder="Sua senha">
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+            
+            <hr>
+            
+            <div class="text-center">
+                <p class="mb-0">Não tem uma conta?</p>
+                <a href="{{ url_for('register') }}" class="btn btn-outline w-100 mt-2">
+                    <i class="fas fa-user-plus"></i> Criar Conta Grátis
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="text-center">
+                <h5><i class="fas fa-gift"></i> Teste Grátis de 7 Dias</h5>
+                <p class="text-muted mb-0">Experimente todas as funcionalidades do plano PRO por 7 dias, sem compromisso!</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

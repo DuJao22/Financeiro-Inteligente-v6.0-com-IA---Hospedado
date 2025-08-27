@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Assinatura - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12">
+        <div class="text-center mb-5">
+            <h1><i class="fas fa-crown"></i> Escolha seu Plano</h1>
+            <p class="lead">Selecione o plano ideal para suas necessidades financeiras</p>
+        </div>
+        
+        <div class="row">
+            <!-- Plano Stand -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header text-center bg-light">
+                        <h3 class="card-title">
+                            <i class="fas fa-play"></i> Stand
+                        </h3>
+                        <p class="card-subtitle">Para começar</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="display-5 mb-3">
+                            <span class="currency">R$ 39,99</span>
+                            <small class="text-muted">/mês</small>
+                        </div>
+                
+                        <div class="text-start">
+                            <h6><i class="fas fa-check text-success"></i> Incluído:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Até 100 lançamentos/mês</li>
+                                <li><i class="fas fa-check text-success"></i> Relatórios básicos</li>
+                                <li><i class="fas fa-check text-success"></i> Layon (Assistente IA básico)</li>
+                                <li><i class="fas fa-check text-success"></i> 1 conta bancária</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3">
+                        <button onclick="checkout('stand', 39.99)" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-credit-card"></i> Escolher Stand
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Plano Intermediário -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 border-primary">
+                    <div class="card-header text-center bg-primary text-white">
+                        <h3 class="card-title">
+                            <i class="fas fa-rocket"></i> Intermediário
+                        </h3>
+                        <p class="card-subtitle">Mais popular</p>
+                        <span class="badge bg-warning text-dark">Recomendado</span>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="display-5 mb-3">
+                            <span class="currency">R$ 69,99</span>
+                            <small class="text-muted">/mês</small>
+                        </div>
+                        
+                        <div class="text-start">
+                            <h6><i class="fas fa-check text-success"></i> Incluído:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> Lançamentos ilimitados</li>
+                                <li><i class="fas fa-check text-success"></i> Relatórios avançados</li>
+                                <li><i class="fas fa-check text-success"></i> Layon (Assistente IA completo)</li>
+                                <li><i class="fas fa-check text-success"></i> Até 3 contas bancárias</li>
+                                <li><i class="fas fa-check text-success"></i> Exportação de dados</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3">
+                        <button onclick="checkout('intermediario', 69.99)" class="btn btn-primary w-100">
+                            <i class="fas fa-credit-card"></i> Escolher Intermediário
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Plano Pro -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header text-center bg-warning">
+                        <h3 class="card-title">
+                            <i class="fas fa-crown"></i> Pro
+                        </h3>
+                        <p class="card-subtitle">Recursos completos</p>
+                    </div>
+                    
+                    <div class="text-center p-4">
+                        <div class="display-5 mb-3">
+                            <span class="currency">R$ 99,80</span>
+                            <small class="text-muted">/mês</small>
+                        </div>
+                        
+                        <div class="text-start">
+                            <h6><i class="fas fa-check text-success"></i> Tudo do Intermediário +:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-star text-warning"></i> Contas bancárias ilimitadas</li>
+                                <li><i class="fas fa-star text-warning"></i> Suporte prioritário</li>
+                                <li><i class="fas fa-star text-warning"></i> Backup automático</li>
+                                <li><i class="fas fa-star text-warning"></i> Categorias personalizadas</li>
+                                <li><i class="fas fa-star text-warning"></i> API de integração</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3">
+                        <button onclick="checkout('pro', 99.80)" class="btn btn-warning w-100">
+                            <i class="fas fa-credit-card"></i> Escolher Pro
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if trial_active %}
+            <div class="alert alert-info">
+                <i class="fas fa-clock"></i> {{ trial_message }}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> {{ trial_message }}
+                <br>Para continuar usando as funcionalidades premium, escolha um plano acima.
+            </div>
+        {% endif %}
+        
+        <!-- Features Comparison -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <i class="fas fa-balance-scale"></i> Comparação de Planos
+                </h4>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Funcionalidade</th>
+                            <th class="text-center">Teste Grátis</th>
+                            <th class="text-center">Stand</th>
+                            <th class="text-center">Intermediário</th>
+                            <th class="text-center">Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Lançamentos financeiros</td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>7 dias</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>100/mês</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Ilimitado</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Ilimitado</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Relatórios</td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Básicos</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Básicos</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Avançados</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Avançados</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Layon (Assistente IA)</td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Limitado</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Básico</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Completo</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Completo</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Contas bancárias</td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>1</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>1</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>3</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                                <br><small>Ilimitadas</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Exportação de dados</td>
+                            <td class="text-center">
+                                <i class="fas fa-times text-danger"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-times text-danger"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Suporte técnico</td>
+                            <td class="text-center">
+                                <i class="fas fa-envelope text-warning"></i>
+                                <br><small>Email</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-envelope text-warning"></i>
+                                <br><small>Email</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-envelope text-warning"></i>
+                                <br><small>Email</small>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-headset text-success"></i>
+                                <br><small>Prioritário</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Backup automático</td>
+                            <td class="text-center">
+                                <i class="fas fa-times text-danger"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-times text-danger"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-times text-danger"></i>
+                            </td>
+                            <td class="text-center">
+                                <i class="fas fa-check text-success"></i>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- FAQ -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4 class="card-title">
+                    <i class="fas fa-question-circle"></i> Perguntas Frequentes
+                </h4>
+            </div>
+            <div class="p-4">
+                <div class="accordion" id="faqAccordion">
+                    <div class="card">
+                        <div class="card-header" id="faq1">
+                            <button class="btn btn-link text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                <strong>Posso cancelar a qualquer momento?</strong>
+                            </button>
+                        </div>
+                        <div id="collapse1" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="card-body">
+                                Sim! Você pode cancelar sua assinatura a qualquer momento. Não há fidelidade ou multa por cancelamento.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header" id="faq2">
+                            <button class="btn btn-link text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                <strong>Meus dados ficam seguros?</strong>
+                            </button>
+                        </div>
+                        <div id="collapse2" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="card-body">
+                                Absolutamente! Seus dados são criptografados e armazenados com segurança. Seguimos as melhores práticas de segurança.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header" id="faq3">
+                            <button class="btn btn-link text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3">
+                                <strong>Há desconto para pagamento anual?</strong>
+                            </button>
+                        </div>
+                        <div id="collapse3" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="card-body">
+                                Sim! O pagamento anual tem 20% de desconto. Entre em contato para mais informações.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function checkout(plan, price) {
+    // Redireciona para página de checkout com os parâmetros do plano
+    window.location.href = `/checkout?plan=${plan}&price=${price}`;
+}
+</script>
+{% endblock %}

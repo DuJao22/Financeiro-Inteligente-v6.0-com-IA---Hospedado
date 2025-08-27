@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+    <div class="dashboard-header-actions">
+        <a href="{{ url_for('lancamentos') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Lançamento
+        </a>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-outline">
+            <i class="fas fa-download"></i> Exportar CSV
+        </a>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ brl(total_balance) }}</div>
+        <div class="stat-label">
+            <i class="fas fa-wallet"></i> Saldo Total
+        </div>
+    </div>
+    
+    <div class="stat-card income">
+        <div class="stat-value">{{ brl(receitas_mes) }}</div>
+        <div class="stat-label">
+            <i class="fas fa-arrow-up"></i> Receitas do Mês
+        </div>
+    </div>
+    
+    <div class="stat-card expense">
+        <div class="stat-value">{{ brl(despesas_mes) }}</div>
+        <div class="stat-label">
+            <i class="fas fa-arrow-down"></i> Despesas do Mês
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Accounts -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-university"></i> Suas Contas
+                </h3>
+            </div>
+            
+            {% if accounts %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Conta</th>
+                                <th class="text-right">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in accounts %}
+                            <tr>
+                                <td>{{ account.name }}</td>
+                                <td class="text-right">
+                                    {% set balance = account.initial_balance + account.transactions_total %}
+                                    <span class="currency {% if balance >= 0 %}positive{% else %}negative{% endif %}">
+                                        {{ brl(balance) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-university fa-3x text-muted"></i>
+                    <p class="text-muted mt-3">Nenhuma conta criada ainda</p>
+                    <a href="{{ url_for('lancamentos') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Criar Primeira Conta
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-clock"></i> Lançamentos Recentes
+                </h3>
+            </div>
+            
+            {% if recent_entries %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in recent_entries %}
+                            <tr>
+                                <td>{{ br_datetime(entry.when_utc) }}</td>
+                                <td>
+                                    {% if entry.type == 'receita' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-up"></i> Receita
+                                        </span>
+                                    {% elif entry.type == 'despesa' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-down"></i> Despesa
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-exchange-alt"></i> Transferência
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <span class="currency {% if entry.type == 'receita' %}positive{% else %}negative{% endif %}">
+                                        {{ brl(entry.amount) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center p-3">
+                    <a href="{{ url_for('lancamentos') }}" class="btn btn-outline">
+                        Ver Todos os Lançamentos <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-receipt fa-3x text-muted"></i>
+                    <p class="text-muted mt-3">Nenhum lançamento ainda</p>
+                    <a href="{{ url_for('lancamentos') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Criar Primeiro Lançamento
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bills Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt"></i> Contas Próximas do Vencimento
+                    </h3>
+                    {% if bills_summary and (bills_summary.contas_pagar or bills_summary.contas_receber or bills_summary.contas_vencidas) %}
+                    <div class="d-flex gap-2">
+                        {% if bills_summary.contas_pagar %}
+                        <span class="badge bg-danger">{{ bills_summary.contas_pagar }} a pagar</span>
+                        {% endif %}
+                        {% if bills_summary.contas_receber %}
+                        <span class="badge bg-success">{{ bills_summary.contas_receber }} a receber</span>
+                        {% endif %}
+                        {% if bills_summary.contas_vencidas %}
+                        <span class="badge bg-warning">{{ bills_summary.contas_vencidas }} vencidas</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if upcoming_bills %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Vencimento</th>
+                                <th>Descrição</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in upcoming_bills %}
+                            <tr class="{% if bill.due_date_utc < now_utc %}table-danger{% endif %}">
+                                <td>
+                                    {{ br_datetime(bill.due_date_utc) }}
+                                    {% if bill.due_date_utc < now_utc %}
+                                        <br><small class="text-danger">
+                                            <i class="fas fa-exclamation-triangle"></i> Vencido
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ bill.description }}</strong>
+                                    {% if bill.category_name %}
+                                        <br><small class="text-muted">{{ bill.category_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if bill.type == 'pagar' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-down"></i> A Pagar
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-up"></i> A Receber
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <span class="currency {% if bill.type == 'receber' %}positive{% else %}negative{% endif %}">
+                                        {{ brl(bill.amount) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock"></i> Pendente
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center p-3">
+                    <a href="{{ url_for('contas_pagar_receber') }}" class="btn btn-outline">
+                        Ver Todas as Contas <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                    <p class="text-muted mt-3">Nenhuma conta pendente</p>
+                    <a href="{{ url_for('contas_pagar_receber') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Criar Primeira Conta
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-bolt"></i> Ações Rápidas
+        </h3>
+    </div>
+    <div class="row g-3 p-3">
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('lancamentos') }}" class="btn btn-outline w-100">
+                <i class="fas fa-plus-circle"></i><br>
+                <small>Novo Lançamento</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('relatorios') }}" class="btn btn-outline w-100">
+                <i class="fas fa-chart-bar"></i><br>
+                <small>Ver Relatórios</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('chat') }}" class="btn btn-outline w-100">
+                <i class="fas fa-robot"></i><br>
+                <small>Assistente IA</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('export_csv') }}" class="btn btn-outline w-100">
+                <i class="fas fa-download"></i><br>
+                <small>Exportar Dados</small>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

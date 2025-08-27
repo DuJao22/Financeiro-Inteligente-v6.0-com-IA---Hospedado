@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Meu Perfil - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-user-circle"></i> Meu Perfil</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-edit"></i> Editar Perfil
+                </h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Nome Completo</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name" 
+                                       value="{{ user.name }}" 
+                                       required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       value="{{ user.email }}" 
+                                       disabled>
+                                <div class="form-text">O email não pode ser alterado.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-camera"></i> Foto de Perfil
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="profile-photo-container mb-3">
+                    {% if user.profile_photo %}
+                        <img src="{{ url_for('static', filename=user.profile_photo) }}" 
+                             alt="Foto de perfil" 
+                             class="profile-photo">
+                    {% else %}
+                        <div class="profile-photo-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <form method="POST" action="{{ url_for('upload_foto') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" 
+                               class="form-control" 
+                               name="foto" 
+                               accept="image/*" 
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-upload"></i> Alterar Foto
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle"></i> Informações da Conta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="info-item">
+                    <strong>Status:</strong>
+                    {% if user.subscribed %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-crown"></i> {{ user.subscription_plan|title }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning">
+                            <i class="fas fa-clock"></i> Trial
+                        </span>
+                    {% endif %}
+                </div>
+                
+                {% if user.subscribed and user.subscription_date %}
+                <div class="info-item mt-2">
+                    <strong>Assinante desde:</strong><br>
+                    <small>{{ br_datetime(user.subscription_date) }}</small>
+                </div>
+                {% endif %}
+                
+                <div class="info-item mt-2">
+                    <strong>Membro desde:</strong><br>
+                    <small>{{ br_datetime(user.created_at_utc) }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-photo-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #e9ecef;
+}
+
+.profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-photo-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 3rem;
+}
+
+.info-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+</style>
+{% endblock %}

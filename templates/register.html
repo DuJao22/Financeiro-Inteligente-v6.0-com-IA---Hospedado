@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h1 class="card-title">
+                    <i class="fas fa-user-plus"></i> Criar Conta
+                </h1>
+                <p class="card-subtitle">Comece seu teste grátis de 7 dias</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="name" class="form-label">
+                        <i class="fas fa-user"></i> Nome Completo
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="name" 
+                           name="name" 
+                           required 
+                           placeholder="Seu nome completo"
+                           value="{{ request.form.name or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" 
+                           class="form-control" 
+                           id="email" 
+                           name="email" 
+                           required 
+                           placeholder="seu@email.com"
+                           value="{{ request.form.email or '' }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock"></i> Senha
+                    </label>
+                    <input type="password" 
+                           class="form-control" 
+                           id="password" 
+                           name="password" 
+                           required 
+                           placeholder="Mínimo 6 caracteres"
+                           minlength="6">
+                    <small class="form-text text-muted">Mínimo de 6 caracteres</small>
+                </div>
+                
+                <button type="submit" class="btn btn-success w-100 btn-lg">
+                    <i class="fas fa-rocket"></i> Começar Teste Grátis
+                </button>
+            </form>
+            
+            <hr>
+            
+            <div class="text-center">
+                <p class="mb-0">Já tem uma conta?</p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline w-100 mt-2">
+                    <i class="fas fa-sign-in-alt"></i> Fazer Login
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="text-center">
+                <h5><i class="fas fa-star"></i> O que você ganha:</h5>
+                <ul class="list-unstyled text-start mt-3">
+                    <li><i class="fas fa-check text-success"></i> Gestão completa de finanças</li>
+                    <li><i class="fas fa-check text-success"></i> Relatórios avançados</li>
+                    <li><i class="fas fa-check text-success"></i> Assistente de IA</li>
+                    <li><i class="fas fa-check text-success"></i> Export de dados</li>
+                    <li><i class="fas fa-check text-success"></i> Suporte premium</li>
+                </ul>
+                <p class="text-muted mb-0"><strong>R$ 100,00/mês</strong> após o período de teste</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

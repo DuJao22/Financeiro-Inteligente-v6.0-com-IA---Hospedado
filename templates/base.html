@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SaaS Financeiro{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    {% if session.user_id %}
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div style="display: flex; align-items: center;">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+                        <i class="fas fa-chart-line"></i> SaaS Financeiro
+                    </a>
+                </div>
+                
+                <div class="navbar-user">
+                    <div class="user-info">
+                        <i class="fas fa-user"></i>
+                        <span>{{ session.user_name }}</span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <div class="nav-section">Principal</div>
+            <div class="nav-item">
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">Financeiro</div>
+            <div class="nav-item">
+                <a href="{{ url_for('lancamentos') }}" class="nav-link {% if request.endpoint == 'lancamentos' %}active{% endif %}">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Lançamentos</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ url_for('contas_pagar_receber') }}" class="nav-link {% if request.endpoint == 'contas_pagar_receber' %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Contas a Pagar/Receber</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ url_for('relatorios') }}" class="nav-link {% if request.endpoint == 'relatorios' %}active{% endif %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">Ferramentas</div>
+            <div class="nav-item">
+                <a href="{{ url_for('chat') }}" class="nav-link {% if request.endpoint == 'chat' %}active{% endif %}">
+                    <i class="fas fa-robot"></i>
+                    <span>Layon (Assistente IA)</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ url_for('export_csv') }}" class="nav-link">
+                    <i class="fas fa-download"></i>
+                    <span>Exportar Dados</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">Conta</div>
+            <div class="nav-item">
+                <a href="{{ url_for('perfil') }}" class="nav-link {% if request.endpoint == 'perfil' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Meu Perfil</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ url_for('assinatura') }}" class="nav-link {% if request.endpoint == 'assinatura' %}active{% endif %}">
+                    <i class="fas fa-crown"></i>
+                    <span>Plano PRO</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="{{ url_for('logout') }}" class="nav-link logout-nav">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Assistente Flutuante -->
+    <div class="floating-assistant" id="floatingAssistant">
+        <div class="assistant-toggle" id="assistantToggle">
+            <i class="fas fa-robot"></i>
+            <span class="assistant-pulse"></span>
+        </div>
+        
+        <div class="assistant-bubble" id="assistantBubble">
+            <div class="assistant-header">
+                <div class="assistant-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="assistant-info">
+                    <div class="assistant-name">Layon</div>
+                    <div class="assistant-status">Assistente IA</div>
+                </div>
+                <button class="assistant-close" id="assistantClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="assistant-body" id="assistantBody">
+                <div class="assistant-message assistant-intro">
+                    <div class="message-content">
+                        <p>👋 Olá! Sou o <strong>Layon</strong>, seu assistente financeiro!</p>
+                        <p>Posso te ajudar a:</p>
+                        <div class="quick-options">
+                            <button class="quick-btn" data-action="tutorial">
+                                <i class="fas fa-graduation-cap"></i>
+                                Aprender o sistema
+                            </button>
+                            <button class="quick-btn" data-action="financial">
+                                <i class="fas fa-chart-line"></i>
+                                Consultas financeiras
+                            </button>
+                            <button class="quick-btn" data-action="features">
+                                <i class="fas fa-lightbulb"></i>
+                                Funcionalidades
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="assistant-input">
+                <input type="text" id="assistantInput" placeholder="Digite sua pergunta..." maxlength="200">
+                <button id="assistantSend" type="button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'error' if category == 'error' else category }}" role="alert">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif category == 'error' %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fas fa-exclamation-circle"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Trial Status Banner -->
+            {% if session.user_id and trial_message %}
+                <div class="trial-banner {% if not trial_active %}expired{% endif %}">
+                    <i class="fas fa-clock"></i> {{ trial_message }}
+                    {% if not trial_active %}
+                        <a href="{{ url_for('assinatura') }}" class="btn btn-outline ms-3">Assinar Agora</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Feito com <i class="fas fa-heart" style="color: #e74c3c;"></i> e atribuído a <strong>João Layon</strong>. Todos os créditos.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            function toggleSidebar() {
+                if (hamburgerBtn && sidebar && sidebarOverlay) {
+                    hamburgerBtn.classList.toggle('active');
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    
+                    if (window.innerWidth < 1024) {
+                        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+                    }
+                }
+            }
+
+            function closeSidebar() {
+                if (hamburgerBtn && sidebar && sidebarOverlay) {
+                    hamburgerBtn.classList.remove('active');
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleSidebar);
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+
+            // Auto-open sidebar on desktop
+            if (window.innerWidth >= 1024 && sidebar) {
+                sidebar.classList.add('active');
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 1024 && sidebar && sidebarOverlay) {
+                    sidebar.classList.add('active');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                } else {
+                    if (hamburgerBtn && !hamburgerBtn.classList.contains('active') && sidebar) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+
+            // Close sidebar when clicking on nav links (mobile only)
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            if (navLinks.length > 0) {
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (window.innerWidth < 1024) {
+                            closeSidebar();
+                        }
+                    });
+                });
+            }
+        });
+
+        // Brazilian currency input formatting
+        function formatCurrencyInput(input) {
+            let value = input.value.replace(/\D/g, '');
+            value = (value / 100).toFixed(2);
+            value = value.replace('.', ',');
+            value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            input.value = value;
+        }
+
+        // Apply formatting to inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const currencyInputs = document.querySelectorAll('input[data-currency]');
+            currencyInputs.forEach(input => {
+                input.addEventListener('input', () => formatCurrencyInput(input));
+            });
+        });
+
+        // Assistente Flutuante JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            const assistantToggle = document.getElementById('assistantToggle');
+            const assistantBubble = document.getElementById('assistantBubble');
+            const assistantClose = document.getElementById('assistantClose');
+            const assistantInput = document.getElementById('assistantInput');
+            const assistantSend = document.getElementById('assistantSend');
+            const assistantBody = document.getElementById('assistantBody');
+
+            let isOpen = false;
+
+            function toggleAssistant() {
+                isOpen = !isOpen;
+                if (isOpen) {
+                    assistantBubble.classList.add('active');
+                    assistantInput.focus();
+                } else {
+                    assistantBubble.classList.remove('active');
+                }
+            }
+
+            function closeAssistant() {
+                isOpen = false;
+                assistantBubble.classList.remove('active');
+            }
+
+            function addMessage(content, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `assistant-message ${isUser ? 'user-message' : 'assistant-response'}`;
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.innerHTML = content;
+                
+                messageDiv.appendChild(messageContent);
+                assistantBody.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                assistantBody.scrollTop = assistantBody.scrollHeight;
+            }
+
+            function handleQuickAction(action) {
+                let response = '';
+                
+                switch(action) {
+                    case 'tutorial':
+                        response = `
+                            <strong>🎓 Tutorial do Sistema</strong><br><br>
+                            <div style="text-align: left;">
+                            <strong>1. Dashboard</strong> - Visão geral das suas finanças<br>
+                            <strong>2. Lançamentos</strong> - Adicione receitas e despesas<br>
+                            <strong>3. Contas a Pagar/Receber</strong> - Gerencie vencimentos<br>
+                            <strong>4. Relatórios</strong> - Análises detalhadas<br><br>
+                            
+                            💡 <strong>Dicas:</strong><br>
+                            • Use categorias para organizar melhor<br>
+                            • Configure lembretes para vencimentos<br>
+                            • Consulte relatórios mensalmente<br><br>
+                            
+                            Quer saber mais sobre alguma funcionalidade específica?
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'financial':
+                        response = `
+                            <strong>💰 Consultas Financeiras</strong><br><br>
+                            <div style="text-align: left;">
+                            Você pode me perguntar:<br><br>
+                            
+                            <strong>💵 Saldo e Patrimônio:</strong><br>
+                            • "saldo total" ou "quanto tenho"<br><br>
+                            
+                            <strong>📈 Receitas:</strong><br>
+                            • "receitas deste mês"<br>
+                            • "faturamento hoje"<br><br>
+                            
+                            <strong>💸 Despesas:</strong><br>
+                            • "despesas hoje"<br>
+                            • "gastos desta semana"<br><br>
+                            
+                            <strong>📊 Relatórios:</strong><br>
+                            • "resumo mensal"<br>
+                            • "top 5 despesas"<br><br>
+                            
+                            Digite sua pergunta abaixo!
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'features':
+                        response = `
+                            <strong>💡 Funcionalidades Principais</strong><br><br>
+                            <div style="text-align: left;">
+                            <strong>🏠 Dashboard</strong><br>
+                            • Visão geral das finanças<br>
+                            • Gráficos e estatísticas<br><br>
+                            
+                            <strong>💰 Lançamentos</strong><br>
+                            • Adicionar receitas e despesas<br>
+                            • Categorizar transações<br>
+                            • Anexar comprovantes<br><br>
+                            
+                            <strong>📅 Contas</strong><br>
+                            • Controle de vencimentos<br>
+                            • Alertas automáticos<br>
+                            • Status de pagamento<br><br>
+                            
+                            <strong>📊 Relatórios</strong><br>
+                            • Análises detalhadas<br>
+                            • Exportar dados<br>
+                            • Comparativos mensais<br><br>
+                            
+                            Precisa de ajuda com alguma funcionalidade?
+                            </div>
+                        `;
+                        break;
+                }
+                
+                addMessage(response);
+            }
+
+            async function sendMessage() {
+                const message = assistantInput.value.trim();
+                if (!message) return;
+
+                // Mostrar mensagem do usuário
+                addMessage(message, true);
+                assistantInput.value = '';
+
+                // Enviar para o backend
+                try {
+                    const response = await fetch('/chat-assistant', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+                    
+                    const data = await response.json();
+                    addMessage(data.response);
+                } catch (error) {
+                    addMessage('❌ Erro ao processar mensagem. Tente novamente.');
+                }
+            }
+
+            // Event listeners
+            assistantToggle.addEventListener('click', toggleAssistant);
+            assistantClose.addEventListener('click', closeAssistant);
+            assistantSend.addEventListener('click', sendMessage);
+            
+            assistantInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Quick action buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quick-btn')) {
+                    const action = e.target.dataset.action;
+                    handleQuickAction(action);
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

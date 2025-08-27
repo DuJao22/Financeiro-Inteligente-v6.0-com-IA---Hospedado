@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-chart-bar"></i> Relatórios</h1>
+    <div>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-primary">
+            <i class="fas fa-download"></i> Exportar CSV
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- DRE Simples -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-calculator"></i> DRE do Mês
+                </h3>
+                <p class="card-subtitle">Demonstrativo de Resultado do Exercício</p>
+            </div>
+            
+            {% if monthly_pl %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <tbody>
+                            {% set total_receitas = 0 %}
+                            {% set total_despesas = 0 %}
+                            {% for item in monthly_pl %}
+                                {% if item.type == 'receita' %}
+                                    {% set total_receitas = item.total %}
+                                {% elif item.type == 'despesa' %}
+                                    {% set total_despesas = item.total %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <tr>
+                                <td><strong>Receitas</strong></td>
+                                <td class="text-right">
+                                    <span class="currency positive">
+                                        {{ brl(total_receitas) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Despesas</strong></td>
+                                <td class="text-right">
+                                    <span class="currency negative">
+                                        ({{ brl(total_despesas) }})
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr style="border-top: 2px solid #dee2e6;">
+                                <td><strong>Resultado</strong></td>
+                                <td class="text-right">
+                                    {% set resultado = total_receitas - total_despesas %}
+                                    <span class="currency {% if resultado >= 0 %}positive{% else %}negative{% endif %}">
+                                        <strong>{{ brl(resultado) }}</strong>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="p-3">
+                    {% set resultado = total_receitas - total_despesas %}
+                    {% if resultado > 0 %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-thumbs-up"></i> Parabéns! Você teve um resultado positivo este mês.
+                        </div>
+                    {% elif resultado < 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Atenção: suas despesas superaram as receitas este mês.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-balance-scale"></i> Suas receitas e despesas estão equilibradas este mês.
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-bar fa-3x text-muted"></i>
+                    <p class="text-muted mt-3">Nenhum dado para o mês atual</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Top Categorias -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-trophy"></i> Top Categorias
+                </h3>
+                <p class="card-subtitle">Maiores movimentações do mês</p>
+            </div>
+            
+            {% if top_categories %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th class="text-right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for category in top_categories %}
+                            <tr>
+                                <td>{{ category.category_name }}</td>
+                                <td>
+                                    {% if category.type == 'receita' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-up"></i> Receita
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-down"></i> Despesa
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <span class="currency {% if category.type == 'receita' %}positive{% else %}negative{% endif %}">
+                                        {{ brl(category.total) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-trophy fa-3x text-muted"></i>
+                    <p class="text-muted mt-3">Nenhuma categoria com movimentação</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Fluxo de Caixa -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-line"></i> Fluxo de Caixa Diário
+        </h3>
+        <p class="card-subtitle">Movimentação diária do mês atual</p>
+    </div>
+    
+    {% if daily_flow %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th class="text-right">Receitas</th>
+                        <th class="text-right">Despesas</th>
+                        <th class="text-right">Saldo do Dia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in daily_flow %}
+                    <tr>
+                        <td>{{ day.day }}</td>
+                        <td class="text-right">
+                            <span class="currency positive">
+                                {{ brl(day.receitas) }}
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <span class="currency negative">
+                                {{ brl(day.despesas) }}
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            {% set saldo_dia = day.receitas - day.despesas %}
+                            <span class="currency {% if saldo_dia >= 0 %}positive{% else %}negative{% endif %}">
+                                <strong>{{ brl(saldo_dia) }}</strong>
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-chart-line fa-3x text-muted"></i>
+            <p class="text-muted mt-3">Nenhuma movimentação diária no mês</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Ações -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-cogs"></i> Ações Disponíveis
+        </h3>
+    </div>
+    <div class="row g-3 p-3">
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('export_csv') }}" class="btn btn-outline w-100">
+                <i class="fas fa-file-csv"></i><br>
+                <small>Exportar CSV</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('lancamentos') }}" class="btn btn-outline w-100">
+                <i class="fas fa-plus-circle"></i><br>
+                <small>Novo Lançamento</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('chat') }}" class="btn btn-outline w-100">
+                <i class="fas fa-robot"></i><br>
+                <small>Perguntar à IA</small>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline w-100">
+                <i class="fas fa-tachometer-alt"></i><br>
+                <small>Voltar ao Dashboard</small>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

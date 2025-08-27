@@ -1,0 +1,14 @@
+# Dependências principais
+Flask>=3.1.2
+Werkzeug>=3.1.3
+
+# Integração com MercadoPago
+mercadopago>=2.2.3
+
+# IA Assistente (caso use OpenAI, senão remova/ajuste)
+openai>=1.40.0
+
+# Produção (caso vá usar deploy)
+gunicorn>=23.0.0
+
+# ZoneInfo e sqlite3 já estão incluídos no Python >=3.9, não precisa instalar.

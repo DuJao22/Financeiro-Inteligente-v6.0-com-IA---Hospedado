@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Agente Layon - SaaS Financeiro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-robot"></i> Agente Layon</h1>
+</div>
+
+<div class="chat-fullscreen">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-comments"></i> Chat com Agente Layon
+                </h3>
+                <p class="card-subtitle">Seu agente financeiro pessoal</p>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-message assistant">
+                        <div class="message-content">
+                            <strong>🤖 Agente Layon:</strong><br>
+                            Olá! Sou o Layon, seu agente financeiro. Posso ajudar com informações sobre suas receitas, despesas, saldo e relatórios. O que gostaria de saber?
+                            
+                            <div class="mt-3">
+                                <strong>Exemplos de perguntas:</strong>
+                                <ul class="mb-0">
+                                    <li>"Qual meu saldo total?"</li>
+                                    <li>"Receitas deste mês"</li>
+                                    <li>"Top 5 despesas"</li>
+                                    <li>"Resumo mensal"</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" 
+                           id="messageInput" 
+                           placeholder="Digite sua pergunta..."
+                           maxlength="500">
+                    <button type="button" 
+                            id="sendButton" 
+                            class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Quick Questions Floating Bubbles -->
+        <div class="quick-questions-bubbles">
+            <div class="bubble-container">
+                <button class="bubble-btn quick-question" data-question="saldo total" title="Saldo Total">
+                    <i class="fas fa-wallet"></i>
+                </button>
+                <button class="bubble-btn quick-question" data-question="receitas deste mês" title="Receitas do Mês">
+                    <i class="fas fa-arrow-up text-success"></i>
+                </button>
+                <button class="bubble-btn quick-question" data-question="despesas deste mês" title="Despesas do Mês">
+                    <i class="fas fa-arrow-down text-danger"></i>
+                </button>
+                <button class="bubble-btn quick-question" data-question="top 5 despesas" title="Top Despesas">
+                    <i class="fas fa-trophy text-warning"></i>
+                </button>
+                <button class="bubble-btn quick-question" data-question="resumo mensal" title="Resumo Mensal">
+                    <i class="fas fa-chart-bar text-info"></i>
+                </button>
+                <button class="bubble-btn quick-question" data-question="ajuda" title="Ajuda">
+                    <i class="fas fa-question text-primary"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let isLoading = false;
+
+// Elements
+const messageInput = document.getElementById('messageInput');
+const sendButton = document.getElementById('sendButton');
+const chatMessages = document.getElementById('chatMessages');
+const quickQuestions = document.querySelectorAll('.quick-question');
+
+// Send message function
+async function sendMessage(message) {
+    if (!message.trim() || isLoading) return;
+    
+    // Add user message to chat
+    addMessageToChat('user', message);
+    
+    // Clear input but keep focus
+    messageInput.value = '';
+    
+    // Show loading
+    setLoading(true);
+    addLoadingMessage();
+    
+    try {
+        const response = await fetch('/api/assistant', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        // Remove loading message
+        removeLoadingMessage();
+        
+        if (data.status === 'ok') {
+            addMessageToChat('assistant', data.answer);
+        } else {
+            addMessageToChat('assistant', 'Desculpe, ocorreu um erro: ' + (data.message || 'Erro desconhecido'));
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        removeLoadingMessage();
+        addMessageToChat('assistant', 'Desculpe, não foi possível processar sua mensagem. Tente novamente.');
+    } finally {
+        setLoading(false);
+        // Ensure input stays focused and visible
+        setTimeout(() => {
+            messageInput.focus();
+        }, 100);
+    }
+}
+
+// Add message to chat
+function addMessageToChat(sender, message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    if (sender === 'user') {
+        contentDiv.innerHTML = `<strong>Você:</strong><br>${message}`;
+    } else {
+        // Format assistant message (support markdown-like formatting)
+        const formattedMessage = message
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+        contentDiv.innerHTML = `<strong>🤖 Agente Layon:</strong><br>${formattedMessage}`;
+    }
+    
+    messageDiv.appendChild(contentDiv);
+    chatMessages.appendChild(messageDiv);
+    
+    // Scroll to bottom and ensure input remains visible
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Ensure input stays focused and visible
+    if (!isLoading && document.activeElement !== messageInput) {
+        setTimeout(() => {
+            messageInput.focus();
+        }, 50);
+    }
+}
+
+// Loading states
+function setLoading(loading) {
+    isLoading = loading;
+    sendButton.disabled = loading;
+    
+    // Don't disable input to keep it visible and focusable
+    if (loading) {
+        messageInput.style.opacity = '0.7';
+        sendButton.innerHTML = '<div class="spinner"></div>';
+    } else {
+        messageInput.style.opacity = '1';
+        messageInput.disabled = false;
+        sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+    }
+}
+
+function addLoadingMessage() {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message assistant loading-message';
+    messageDiv.id = 'loadingMessage';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.innerHTML = '<strong>🤖 Assistente:</strong><br><div class="spinner"></div> Processando...';
+    
+    messageDiv.appendChild(contentDiv);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeLoadingMessage() {
+    const loadingMessage = document.getElementById('loadingMessage');
+    if (loadingMessage) {
+        loadingMessage.remove();
+    }
+}
+
+// Event listeners
+sendButton.addEventListener('click', () => {
+    sendMessage(messageInput.value);
+});
+
+messageInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(messageInput.value);
+    }
+});
+
+// Quick questions
+quickQuestions.forEach(button => {
+    button.addEventListener('click', () => {
+        const question = button.getAttribute('data-question');
+        sendMessage(question);
+    });
+});
+
+// Focus on input
+messageInput.focus();
+
+// Handle mobile keyboard viewport issues
+function handleViewportChange() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Handle input focus for mobile keyboards
+messageInput.addEventListener('focus', function() {
+    setTimeout(() => {
+        if (window.innerWidth <= 768) {
+            // Ensure input is always visible
+            this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Scroll chat to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }, 300);
+});
+
+// Prevent input from being hidden
+messageInput.addEventListener('blur', function(e) {
+    // Only refocus if blur wasn't caused by clicking send button
+    if (e.relatedTarget !== sendButton && !isLoading) {
+        setTimeout(() => {
+            this.focus();
+        }, 150);
+    }
+});
+
+// Update viewport height on resize (for mobile keyboards)
+window.addEventListener('resize', handleViewportChange);
+window.addEventListener('orientationchange', handleViewportChange);
+
+// Initial call
+handleViewportChange();
+</script>
+{% endblock %}

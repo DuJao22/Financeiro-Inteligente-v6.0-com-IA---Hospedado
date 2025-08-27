@@ -1,0 +1,1 @@
+# Financeiro-Inteligente-v6.0-com-IA---Hospedado
